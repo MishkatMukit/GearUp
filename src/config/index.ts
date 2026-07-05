@@ -4,5 +4,6 @@ import path from "path"
 dotenv.config({ path: path.join(process.cwd(), ".env") });
 
 export default {
-    port : process.env.PORT || 5000
+    port : process.env.PORT || 5000,
+    app_url: process.env.APP_URL,
 }
