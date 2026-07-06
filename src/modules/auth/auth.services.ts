@@ -5,6 +5,7 @@ import type { RegisterUserPayload } from "../../Interfaces/user.interface";
 import { prisma } from "../../lib/prisma";
 import bcrypt from "bcryptjs"
 import { jwtUtils } from "../../utils/jwt";
+import type { JwtPayload } from "jsonwebtoken";
 
 const registerUserInDB  = async(payload: RegisterUserPayload)=>{
     const { name, email, password, phone, role, profilePhoto } = payload
@@ -69,7 +70,34 @@ const loginUser = async (payload: IloginUser) => {
 
     return { user, accessToken, refreshToken }
 }
+const setRefreshToken = async (refreshToken: string) => {
+    const verifyRefreshToken = jwtUtils.verifyToken(refreshToken, config.jwt_refresh_secret)
+
+    if (!verifyRefreshToken.success) {
+        throw new Error(verifyRefreshToken.error);
+    }
+
+    const { id } = verifyRefreshToken.data as JwtPayload
+
+    const user = await prisma.user.findUniqueOrThrow({
+        where: { id }
+    })
+    if (user.status === ActiveStatus.SUSPENDED) {
+        throw new Error("Your account has been suspended.");
+    }
+
+    const jwtPayload = {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+    }
+    const accessToken = jwtUtils.createToken(jwtPayload, config.jwt_access_secret, config.jwt_access_expires_in)
+
+    return accessToken
+}
 export const authServices = {
     registerUserInDB,
-    loginUser
+    loginUser,
+    setRefreshToken
 }
