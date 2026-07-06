@@ -42,5 +42,6 @@ const loginUser = catchAsync(async (req: Request, res: Response, next: NextFunct
 })
 
 export const authController  = {
-    registerUser
+    registerUser,
+    loginUser
 }
