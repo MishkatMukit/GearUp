@@ -1,0 +1,37 @@
+model RentalOrder {
+  id          String       @id @default(uuid())
+  customerId  String
+  customer    User         @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  status      RentalStatus @default(PLACED)
+  startDate   DateTime
+  endDate     DateTime
+  totalAmount Float        @default(0)
+
+  items RentalItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([customerId])
+  @@map("rental_orders")
+}
+
+// One line item per gear type inside a rental order
+model RentalItem {
+  id String @id @default(uuid())
+
+  rentalOrderId String
+  rentalOrder   RentalOrder @relation(fields: [rentalOrderId], references: [id], onDelete: Cascade)
+
+  gearItemId String
+  gearItem   GearItem @relation(fields: [gearItemId], references: [id], onDelete: Restrict)
+
+  quantity    Int   @default(1)
+  days        Int   @default(1)
+  pricePerDay Float
+  subtotal    Float
+
+  @@index([rentalOrderId])
+  @@index([gearItemId])
+  @@map("rental_items")
+}
