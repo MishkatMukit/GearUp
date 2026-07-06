@@ -58,10 +58,23 @@ const refreshToken = catchAsync(async (req: Request, res: Response, next: NextFu
         data: { accessToken }
     })
 })
+const getMe = catchAsync(async(req:Request, res:Response, next:NextFunction)=>{
+    const userId = req.user?.id as string
+
+    const user = await authServices.getMe(userId)
+
+    sendResponse(res, {
+        success: true,
+        statusCode: httpstatus.OK,
+        message: "Current user fetched successfully",
+        data: user
+    })
+})
 
 
 export const authController  = {
     registerUser,
     loginUser,
-    refreshToken
+    refreshToken,
+    getMe
 }

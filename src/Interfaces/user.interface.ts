@@ -8,3 +8,15 @@ export interface RegisterUserPayload {
     role?: Role;
     profilePhoto?: string;
 }
+declare global {
+    namespace Express {
+        interface Request {
+            user?: {
+                email: string;
+                name: string;
+                id: string;
+                role: Role;
+            }
+        }
+    }
+}
