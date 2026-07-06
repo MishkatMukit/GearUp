@@ -1,4 +1,4 @@
-import type { ICreateCategory } from "../../Interfaces/category.interface"
+import type { ICreateCategory, IUpdateCategory } from "../../Interfaces/category.interface"
 import { prisma } from "../../lib/prisma"
 
 const getAllCategoriesFromDB = async () => {
@@ -19,7 +19,38 @@ const insertCategoryIntoDB = async (payload: ICreateCategory) => {
     })
     return result
 }
+
+const updateCategoryInDB = async(categoryId : string, payload: IUpdateCategory)=>{
+    await prisma.category.findUniqueOrThrow({
+        where:{
+            id: categoryId
+        }
+    })
+    const result = await prisma.category.update({
+        where:{
+            id: categoryId
+        },
+        data:{
+            ...payload
+        },
+    })
+    return result
+}
+const deleteCategoryFromDB = async(categoryId : string)=>{
+    await prisma.category.findUniqueOrThrow({
+        where:{
+            id: categoryId
+        }
+    })
+    const result = await prisma.category.delete({
+        where:{
+            id: categoryId
+        },
+    })
+}
 export const categoryServices = {
     getAllCategoriesFromDB,
-    insertCategoryIntoDB
+    insertCategoryIntoDB,
+    updateCategoryInDB,
+    deleteCategoryFromDB
 }
