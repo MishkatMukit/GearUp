@@ -20,3 +20,11 @@ declare global {
         }
     }
 }
+// export interface UpdateProfilePayload {
+//     name?: string;
+//     phone?: string;
+//     profilePhoto?: string;
+//     bio?: string;
+//     address?: string;
+// }
+
