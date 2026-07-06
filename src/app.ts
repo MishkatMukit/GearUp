@@ -6,6 +6,7 @@ import { globalErrorHandler } from "./middleware/globalErrorHandler"
 import { routeHandler } from "./middleware/routerHandler"
 import { authRoutes } from "./modules/auth/auth.route"
 import { userRoutes } from "./modules/users/users.route"
+import { categoryRoutes } from "./modules/category/category.route"
 
 
 const app : Application = express()
@@ -30,6 +31,7 @@ app.get('/', async (req: Request, res: Response) => {
 
 app.use('/api/auth', authRoutes)
 app.use('/api/users', userRoutes)
+app.use('/api/categories', categoryRoutes)
 
 app.use(globalErrorHandler)
 app.use(routeHandler)
