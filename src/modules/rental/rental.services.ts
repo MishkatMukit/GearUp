@@ -65,7 +65,35 @@ const insertRentalIntoDB = async (payload: ICreateRental, customerId: string) =>
     })
     return order
 }
+const getMyRentalsFromDB = async (customerId: string) => {
+    const orders = await prisma.rentalOrder.findMany({
+        where: { customerId },
+        orderBy: { createdAt: "desc" },
+        include: {
+            items: { include: { gearItem: true } },
+            payment: true
+        }
+    })
+    return orders
+}
+const getRentalByIdFromDB = async (orderId: string, customerId: string) => {
+    const order = await prisma.rentalOrder.findUniqueOrThrow({
+        where: { id: orderId },
+        include: {
+            items: { include: { gearItem: true } },
+            payment: true,
+            customer: { omit: { password: true } }
+        }
+    })
+    if (order.customerId !== customerId) {
+        throw new Error("You are not allowed to view this rental order")
+    }
+    return order
+}
+
 
 export const rentalServices = {
-    insertRentalIntoDB
+    insertRentalIntoDB,
+    getMyRentalsFromDB,
+    getRentalByIdFromDB
 }
