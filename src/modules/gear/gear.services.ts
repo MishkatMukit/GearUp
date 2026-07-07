@@ -74,7 +74,24 @@ const getAllGearFromDB = async (query: IGearQuery) => {
 
     return { data: result, meta: { page, limit, total } }
 }
+const getGearByIdFromDB = async (gearId: string) => {
+    const gear = await prisma.gearItem.findUniqueOrThrow({
+        where: { id: gearId },
+        include: {
+            category: true,
+            provider: { omit: { password: true } },
+            reviews: {
+                include: {
+                    customer: { omit: { password: true } }
+                },
+                orderBy: { createdAt: "desc" }
+            }
+        }
+    })
+    return gear
+}
 
 export const gearServices = {
-    getAllGearFromDB
+    getAllGearFromDB,
+    getGearByIdFromDB
 }

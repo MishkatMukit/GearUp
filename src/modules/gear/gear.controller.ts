@@ -15,7 +15,20 @@ const getAllGear = catchAsync(async (req: Request, res: Response, next: NextFunc
         meta
     })
 })
-
+const getGearById = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const gearId = req.params.id as string
+    if (!gearId) {
+        throw new Error("Gear id required in params");
+    }
+    const gear = await gearServices.getGearByIdFromDB(gearId)
+    sendResponse(res, {
+        statusCode: httpstatus.OK,
+        success: true,
+        message: "Gear details retrieved successfully",
+        data: gear
+    })
+})
 export const gearController = {
-    getAllGear
+    getAllGear,
+    getGearById
 }
