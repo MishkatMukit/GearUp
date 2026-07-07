@@ -7,7 +7,8 @@ model RentalOrder {
   endDate     DateTime
   totalAmount Float        @default(0)
 
-  items RentalItem[]
+  items   RentalItem[]
+  payment Payment?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

@@ -11,6 +11,7 @@ model User {
   profile   Profile?
 
   gearItems GearItem[]
+  payments  Payment[]
 
   rentalOrders RentalOrder[]
   reviews      Review[]

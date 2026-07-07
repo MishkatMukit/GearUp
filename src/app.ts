@@ -9,6 +9,7 @@ import { userRoutes } from "./modules/users/users.route"
 import { categoryRoutes } from "./modules/category/category.route"
 import { gearRoutes } from "./modules/gear/gear.route"
 import { providerRoutes } from "./modules/provider/provider.route"
+import { rentalRoutes } from "./modules/rental/rental.route"
 
 
 const app : Application = express()
@@ -36,6 +37,7 @@ app.use('/api/users', userRoutes)
 app.use('/api/categories', categoryRoutes),
 app.use('/api/gear', gearRoutes)
 app.use('/api/provider/', providerRoutes)
+app.use('/api/rentals/', rentalRoutes)
 
 app.use(globalErrorHandler)
 app.use(routeHandler)
