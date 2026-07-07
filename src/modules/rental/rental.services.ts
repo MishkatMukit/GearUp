@@ -1,7 +1,7 @@
 import { RentalStatus } from "../../../generated/prisma/enums"
 import type { ICreateRental } from "../../Interfaces/rental.interface"
 import { prisma } from "../../lib/prisma"
-import { diffInDays } from "./rental.utils"
+import { diffInDays } from "./utils.rental"
 
 const insertRentalIntoDB = async (payload: ICreateRental, customerId: string) => {
     const { startDate, endDate, items } = payload
@@ -91,9 +91,27 @@ const getRentalByIdFromDB = async (orderId: string, customerId: string) => {
     return order
 }
 
+const cancelRentalInDB = async (orderId: string, customerId: string) => {
+    const order = await prisma.rentalOrder.findUniqueOrThrow({
+        where: { id: orderId }
+    })
+    if (order.customerId !== customerId) {
+        throw new Error("You are not the owner of this rental order")
+    }
+    // Customers may only cancel before the order is confirmed
+    if (order.status !== RentalStatus.PLACED) {
+        throw new Error(`Cannot cancel an order in status ${order.status}`)
+    }
+    const result = await prisma.rentalOrder.update({
+        where: { id: orderId },
+        data: { status: RentalStatus.CANCELLED }
+    })
+    return result
+}
 
 export const rentalServices = {
     insertRentalIntoDB,
     getMyRentalsFromDB,
-    getRentalByIdFromDB
+    getRentalByIdFromDB,
+    cancelRentalInDB
 }

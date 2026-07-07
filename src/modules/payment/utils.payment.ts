@@ -11,10 +11,34 @@ const markPaymentCompleted = async (transactionId: string, method?: string) => {
         return
     }
     if (payment.status === PaymentStatus.COMPLETED) {
-        return // idempotent - already processed
+        return
     }
 
     await prisma.$transaction(async (tx) => {
+        const rentalOrder = await tx.rentalOrder.findUniqueOrThrow({
+            where: { id: payment.rentalOrderId },
+            include: { items: true }
+        })
+
+        for (const item of rentalOrder.items) {
+            const gearItem = await tx.gearItem.findUniqueOrThrow({
+                where: { id: item.gearItemId }
+            })
+
+            if (gearItem.stock < item.quantity) {
+                throw new Error(`Not enough stock for "${gearItem.name}" to fulfill this rental order`)
+            }
+
+            await tx.gearItem.update({
+                where: { id: item.gearItemId },
+                data: {
+                    stock: {
+                        decrement: item.quantity
+                    }
+                }
+            })
+        }
+
         await tx.payment.update({
             where: { transactionId },
             data: {

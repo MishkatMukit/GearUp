@@ -10,6 +10,7 @@ import { categoryRoutes } from "./modules/category/category.route"
 import { gearRoutes } from "./modules/gear/gear.route"
 import { providerRoutes } from "./modules/provider/provider.route"
 import { rentalRoutes } from "./modules/rental/rental.route"
+import { paymentRoutes } from "./modules/payment/payment.route"
 
 
 const app : Application = express()
@@ -18,6 +19,8 @@ app.use(cors({
     origin: config.app_url,
     credentials: true
 }))
+
+app.use('/api/payments/confirm',express.raw({ type: 'application/json' }))
 
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
@@ -38,6 +41,7 @@ app.use('/api/categories', categoryRoutes),
 app.use('/api/gear', gearRoutes)
 app.use('/api/provider/', providerRoutes)
 app.use('/api/rentals/', rentalRoutes)
+app.use('/api/payments', paymentRoutes)
 
 app.use(globalErrorHandler)
 app.use(routeHandler)

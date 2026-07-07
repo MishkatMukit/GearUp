@@ -3,7 +3,7 @@ import config from "../../config"
 import { prisma } from "../../lib/prisma"
 import { stripe } from "../../lib/stripe"
 import { randomUUID } from "crypto"
-import { handleStripeCheckoutCompleted } from "./payment.utils"
+import { handleStripeCheckoutCompleted } from "./utils.payment"
 
 const createPayment = async (rentalOrderId: string, customerId: string) => {
 
@@ -31,7 +31,7 @@ const createPayment = async (rentalOrderId: string, customerId: string) => {
             transactionId,
             amount: order.totalAmount,
             status: PaymentStatus.PENDING,
-            gatewaySessionId: null,
+            stripeSessionId: null,
             paidAt: null
         },
         create: {
@@ -69,23 +69,25 @@ const createPayment = async (rentalOrderId: string, customerId: string) => {
         data: { stripeSessionId: session.id }
     })
     paymentUrl = session.url
-
-    // webhook
-
-    const confirmStripe = async (payload: Buffer, signature: string) => {
-        const event = stripe.webhooks.constructEvent(
-            payload,
-            signature,
-            config.stripe_webhook_secret_key
-        )
-        switch (event.type) {
-            case "checkout.session.completed":
-                await handleStripeCheckoutCompleted(event.data.object)
-                break
-            default:
-                console.log(`Unhandled stripe event type ${event.type}`)
-                break
-        }
+    return { transactionId, paymentUrl }
+}
+const handleWebhook = async (payload: Buffer, signature: string) => {
+    const event = stripe.webhooks.constructEvent(
+        payload,
+        signature,
+        config.stripe_webhook_secret_key
+    )
+    switch (event.type) {
+        case "checkout.session.completed":
+            await handleStripeCheckoutCompleted(event.data.object)
+            break
+        default:
+            console.log(`Unhandled stripe event type ${event.type}`)
+            break
     }
+}
 
+export const paymentServices = {
+    createPayment,
+    handleWebhook
 }

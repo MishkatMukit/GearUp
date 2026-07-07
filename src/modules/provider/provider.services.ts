@@ -1,7 +1,7 @@
 import type { ICreateGear, IUpdateGear } from "../../Interfaces/gear.interface";
 import type { IUpdateRentalStatus } from "../../Interfaces/rental.interface";
 import { prisma } from "../../lib/prisma";
-import { allowedTransitions } from "./provider.utils";
+import { allowedTransitions } from "./utils.provider";
 
 const insertGearIntoDB = async (payload: ICreateGear, providerId: string) => {
     await prisma.category.findUniqueOrThrow({
