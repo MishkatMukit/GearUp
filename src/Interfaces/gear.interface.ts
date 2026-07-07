@@ -23,3 +23,14 @@ export interface IGearQuery
     sortBy?: string;
     sortOrder?: string;
 }
+
+export interface IUpdateGear {
+    name?: string;
+    description?: string;
+    brand?: string;
+    pricePerDay?: number;
+    stock?: number;
+    isAvailable?: boolean;
+    images?: string[];
+    categoryId?: string;
+}

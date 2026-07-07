@@ -1,5 +1,4 @@
 import type { IGearQuery } from "../../Interfaces/gear.interface";
-import type { GearItemWhereInput } from "../../../generated/prisma/models/GearItem";
 import { prisma } from "../../lib/prisma";
 import type { Prisma } from "../../../generated/prisma/browser";
 
@@ -66,7 +65,7 @@ const getAllGearFromDB = async (query: IGearQuery) => {
         orderBy: { [sortBy]: sortOrder },
         include: {
             category: true,
-            // provider: { omit: { password: true } },
+            provider: { omit: { password: true } },
             // _count: { select: { reviews: true } }
         }
     })
