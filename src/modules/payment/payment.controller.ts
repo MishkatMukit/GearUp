@@ -6,7 +6,7 @@ import httpstatus from "http-status"
 
 const createPayment = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const customerId = req.user?.id as string
-    const {rentalOrderId} = req.body
+    const { rentalOrderId } = req.body
     const result = await paymentServices.createPayment(rentalOrderId as string, customerId)
     sendResponse(res, {
         statusCode: httpstatus.OK,
@@ -17,24 +17,24 @@ const createPayment = catchAsync(async (req: Request, res: Response, next: NextF
 })
 
 const handleWebhook = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-        const signature = req.headers["stripe-signature"]
+    const signature = req.headers["stripe-signature"]
 
-        if (!signature) {
-            throw new Error("Stripe signature is missing")
-        }
-
-        await paymentServices.handleWebhook(
-            req.body as Buffer,
-            signature as string
-        )
-
-        sendResponse(res, {
-            statusCode: httpstatus.OK,
-            success: true,
-            message: "Payment confirmed successfully",
-            data: null
-        })
+    if (!signature) {
+        throw new Error("Stripe signature is missing")
     }
+
+    await paymentServices.handleWebhook(
+        req.body as Buffer,
+        signature as string
+    )
+
+    sendResponse(res, {
+        statusCode: httpstatus.OK,
+        success: true,
+        message: "Payment confirmed successfully",
+        data: null
+    })
+}
 )
 const getMyPayments = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const customerId = req.user?.id as string

@@ -17,7 +17,6 @@ model RentalOrder {
   @@map("rental_orders")
 }
 
-// One line item per gear type inside a rental order
 model RentalItem {
   id String @id @default(uuid())
 

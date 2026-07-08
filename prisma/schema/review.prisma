@@ -1,6 +1,6 @@
 model Review {
   id      String  @id @default(uuid())
-  rating  Int // 1 - 5
+  rating  Int 
   comment String? @db.Text
 
   customerId String
@@ -12,7 +12,6 @@ model Review {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // One review per customer per gear item
   @@unique([customerId, gearItemId])
   @@index([gearItemId])
   @@map("reviews")
