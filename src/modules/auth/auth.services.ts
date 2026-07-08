@@ -16,11 +16,12 @@ const registerUserInDB  = async(payload: RegisterUserPayload)=>{
     if (isUserExist) {
         throw new Error("User with this email already exists");
     }
-    // const safeRole = role === Role.PROVIDER ? Role.PROVIDER : Role.CUSTOMER
-    if(role===Role.ADMIN){
+
+    if (role === Role.ADMIN) {
         throw new Error("You are not eligible for ADMIN role");
     }
 
+    const safeRole = role === Role.PROVIDER ? Role.PROVIDER : Role.CUSTOMER
     const hashedPassword = await bcrypt.hash(password, Number(config.bcrypt_salt_rounds));
 
     const createdUser = await prisma.user.create({
