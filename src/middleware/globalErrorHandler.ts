@@ -40,6 +40,6 @@ export const globalErrorHandler = (err: any, req: Request, res: Response, next: 
         statusCode,
         name: errorName,
         message: errorMessage,
-        error: err.stack
+        errorDetails: err.stack
     });
 }

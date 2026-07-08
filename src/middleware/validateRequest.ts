@@ -8,7 +8,7 @@ const validateRequest = (schema: ZodType<any>) => {
                 success: false,
                 statusCode: 500,
                 message: "Validation failed",
-                error: result.error.issues,
+                errorDetails: result.error.issues,
             });
         }
         req.body = result.data;
