@@ -1,5 +1,6 @@
 import { RentalStatus } from "../../../generated/prisma/enums"
-import type { ICreateReview } from "../../Interface/review.interface"
+import type { ICreateReview } from "../../Interfaces/review.interface"
+
 import { prisma } from "../../lib/prisma"
 
 const insertReviewIntoDB = async (payload: ICreateReview, customerId: string) => {

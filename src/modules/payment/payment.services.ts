@@ -86,8 +86,36 @@ const handleWebhook = async (payload: Buffer, signature: string) => {
             break
     }
 }
+const getMyPaymentsFromDB = async (customerId: string) => {
+    const payments = await prisma.payment.findMany({
+        where: { customerId },
+        orderBy: { createdAt: "desc" },
+        include: {
+            rentalOrder: {
+                include: { items: { include: { gearItem: true } } }
+            }
+        }
+    })
+    return payments
+}
+const getPaymentByIdFromDB = async (paymentId: string, customerId: string, isAdmin: boolean) => {
+    const payment = await prisma.payment.findUniqueOrThrow({
+        where: { id: paymentId },
+        include: {
+            rentalOrder: {
+                include: { items: { include: { gearItem: true } } }
+            }
+        }
+    })
+    if (!isAdmin && payment.customerId !== customerId) {
+        throw new Error("You are not allowed to view this payment")
+    }
+    return payment
+}
 
 export const paymentServices = {
     createPayment,
-    handleWebhook
+    handleWebhook,
+    getMyPaymentsFromDB,
+    getPaymentByIdFromDB
 }
