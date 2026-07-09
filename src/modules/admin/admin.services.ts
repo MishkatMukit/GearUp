@@ -60,9 +60,12 @@ const getAllRentalsFromDB = async () => {
     const rentals = await prisma.rentalOrder.findMany({
         orderBy: { createdAt: "desc" },
         include: {
-            customer: { omit: { password: true } },
+            customer: {
+                omit: { password: true }
+            },
             payment: true,
-            items: { include: { gearItem: true } }
+            gearItem:true
+
         }
     })
     return rentals

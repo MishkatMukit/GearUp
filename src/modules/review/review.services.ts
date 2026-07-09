@@ -16,8 +16,8 @@ const insertReviewIntoDB = async (payload: ICreateReview, customerId: string) =>
     const returnedRental = await prisma.rentalOrder.findFirst({
         where: {
             customerId,
-            status: RentalStatus.RETURNED,
-            items: { some: { gearItemId } }
+            gearItemId,
+            status: RentalStatus.RETURNED
         }
     })
     if (!returnedRental) {
