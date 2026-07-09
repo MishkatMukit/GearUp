@@ -1,5 +1,6 @@
 import type { ICreateGear, IUpdateGear } from "../../Interfaces/gear.interface";
 import type { IUpdateRentalStatus } from "../../Interfaces/rental.interface";
+import { RentalStatus } from "../../../generated/prisma/enums";
 import { prisma } from "../../lib/prisma";
 import { allowedTransitions } from "./utils.provider";
 
@@ -88,7 +89,6 @@ const updateOrderStatusInDB = async (orderId: string, payload: IUpdateRentalStat
         }
     })
 
-    // The provider must own at least one gear item in this order
     const ownsGear = order.items.some((item: any) => item.gearItem.providerId === providerId)
     if (!ownsGear) {
         throw new Error("This order does not contain any of your gear")
@@ -99,14 +99,30 @@ const updateOrderStatusInDB = async (orderId: string, payload: IUpdateRentalStat
         throw new Error(`Cannot change status from ${order.status} to ${payload.status}`)
     }
 
-    const result = await prisma.rentalOrder.update({
-        where: { id: orderId },
-        data: { status: payload.status },
-        include: {
-            items: { include: { gearItem: true } },
-            payment: true
+    const result = await prisma.$transaction(async (tx) => {
+        if (payload.status === RentalStatus.RETURNED && order.status !== RentalStatus.RETURNED) {
+            for (const item of order.items) {
+                await tx.gearItem.update({
+                    where: { id: item.gearItemId },
+                    data: {
+                        stock: {
+                            increment: item.quantity
+                        }
+                    }
+                })
+            }
         }
+
+        return tx.rentalOrder.update({
+            where: { id: orderId },
+            data: { status: payload.status },
+            include: {
+                items: { include: { gearItem: true } },
+                payment: true
+            }
+        })
     })
+
     return result
 }
 export const providerServices = {
