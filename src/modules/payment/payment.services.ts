@@ -18,6 +18,9 @@ const createPayment = async (rentalOrderId: string, customerId: string) => {
     if (order.status === RentalStatus.CANCELLED) {
         throw new Error("Cannot pay for a cancelled order")
     }
+    if (order.status !== RentalStatus.CONFIRMED) {
+        throw new Error("Payment is only allowed after the provider confirms the order")
+    }
     if (order.payment && order.payment.status === PaymentStatus.COMPLETED) {
         throw new Error("This order has already been paid")
     }
