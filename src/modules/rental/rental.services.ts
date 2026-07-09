@@ -11,8 +11,14 @@ const insertRentalIntoDB = async (payload: ICreateRental, customerId: string) =>
     }
     const start = new Date(startDate)
     const end = new Date(endDate)
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
     if (isNaN(start.getTime()) || isNaN(end.getTime())) {
         throw new Error("Invalid startDate or endDate")
+    }
+    if (start < today) {
+        throw new Error("startDate cannot be less than the current date")
     }
     if (end <= start) {
         throw new Error("endDate must be after startDate")
