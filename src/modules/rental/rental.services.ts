@@ -4,11 +4,11 @@ import { prisma } from "../../lib/prisma"
 import { diffInDays } from "./utils.rental"
 
 const insertRentalIntoDB = async (payload: ICreateRental, customerId: string) => {
-    const { startDate, endDate, items } = payload
+    const { startDate, endDate, gearItemId, quantity } = payload
 
-    if (!items || items.length === 0) {
-        throw new Error("At least one gear item is required to place a rental")
-    }
+    // if (!item || item.length === 0) {
+    //     throw new Error("At least one gear item is required to place a rental")
+    // }
     const start = new Date(startDate)
     const end = new Date(endDate)
     const today = new Date()
@@ -25,52 +25,41 @@ const insertRentalIntoDB = async (payload: ICreateRental, customerId: string) =>
     }
     const days = diffInDays(start, end)
 
+    const gear = await prisma.gearItem.findUniqueOrThrow({
+        where: { id: gearItemId }
+    })
 
-    const rentalItemsData = []
-    let totalAmount = 0
+    let safeQuantity = quantity && quantity > 0 ? quantity : 1
 
-    for (const item of items) {
-        const gear = await prisma.gearItem.findUniqueOrThrow({
-            where: { id: item.gearItemId }
-        })
-
-        const quantity = item.quantity && item.quantity > 0 ? item.quantity : 1
-
-        if (!gear.isAvailable) {
-            throw new Error(`Gear "${gear.name}" is not available`)
-        }
-        if (gear.stock < quantity) {
-            throw new Error(`Not enough stock for "${gear.name}" (requested ${quantity}, available ${gear.stock})`)
-        }
-
-        const subtotal = gear.pricePerDay * quantity * days
-        totalAmount += subtotal
-
-        rentalItemsData.push({
-            gearItemId: gear.id,
-            quantity,
-            days,
-            pricePerDay: gear.pricePerDay,
-            subtotal
-        })
+    if (!gear.isAvailable) {
+        throw new Error(`Gear "${gear.name}" is not available`)
     }
+    if (gear.stock < quantity) {
+        throw new Error(`Not enough stock for "${gear.name}" (requested ${quantity}, available ${gear.stock})`)
+    }
+    const totalAmount = gear.pricePerDay * safeQuantity * days;
+
     const order = await prisma.rentalOrder.create({
         data: {
             customerId,
+            gearItemId: gear.id,
             startDate: start,
             endDate: end,
+            quantity: safeQuantity,
+            days,
+            pricePerDay: gear.pricePerDay,
             totalAmount,
-            status: RentalStatus.PLACED,
-            items: {
-                create: rentalItemsData
-            }
+            status: RentalStatus.PLACED
         },
         include: {
-            items: { include: { gearItem: true } }
+            gearItem : true
         }
     })
     return order
+
 }
+
+
 const getMyRentalsFromDB = async (customerId: string) => {
     const orders = await prisma.rentalOrder.findMany({
         where: { customerId },

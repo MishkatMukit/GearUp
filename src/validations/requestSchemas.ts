@@ -54,14 +54,10 @@ export const updateGearSchema = z.object({
 });
 
 export const createRentalSchema = z.object({
-  startDate: optionalString,
-  endDate: optionalString,
-  items: z.array(
-    z.object({
-      gearItemId: optionalString,
-      quantity: z.number().int().positive().optional(),
-    })
-  ).min(1, "At least one gear item is required"),
+    gearItemId: optionalString,
+    startDate: optionalString,
+    endDate: optionalString,
+    quantity: z.number().int().positive().optional()
 });
 
 export const updateRentalStatusSchema = z.object({

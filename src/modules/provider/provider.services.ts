@@ -51,7 +51,9 @@ const deleteGearFromDB = async (gearId: string, providerId: string) => {
         throw new Error("You are not the owner of this gear item")
     }
     const result = await prisma.gearItem.delete({
-        where: { id: gearId }
+        where: {
+            id: gearId
+        }
     })
     return result
 }
@@ -59,22 +61,19 @@ const deleteGearFromDB = async (gearId: string, providerId: string) => {
 const getProviderOrdersFromDB = async (providerId: string) => {
     const orders = await prisma.rentalOrder.findMany({
         where: {
-            items: {
-                some: { gearItem: { providerId } }
+            gearItem: {
+                providerId
             }
         },
         orderBy: { createdAt: "desc" },
         include: {
-            customer: { omit: { password: true } },
+            customer: {
+                omit: {
+                    password: true
+                }
+            },
             payment: true,
-            items: {
-                where: {
-                    gearItem: {
-                        providerId
-                    }
-                },
-                include: { gearItem: true }
-            }
+            gearItem: true
         }
     })
     return orders
@@ -85,39 +84,44 @@ const updateOrderStatusInDB = async (orderId: string, payload: IUpdateRentalStat
     const order = await prisma.rentalOrder.findUniqueOrThrow({
         where: { id: orderId },
         include: {
-            items: { include: { gearItem: true } }
+            gearItem: true
         }
     })
 
-    const ownsGear = order.items.some((item: any) => item.gearItem.providerId === providerId)
-    if (!ownsGear) {
-        throw new Error("This order does not contain any of your gear")
+    if (order.gearItem.providerId !== providerId) {
+        throw new Error("You do not own the gear in this order");
     }
 
     const nextAllowed = allowedTransitions[order.status] || []
+
     if (!nextAllowed.includes(payload.status)) {
         throw new Error(`Cannot change status from ${order.status} to ${payload.status}`)
     }
 
     const result = await prisma.$transaction(async (tx) => {
         if (payload.status === RentalStatus.RETURNED && order.status !== RentalStatus.RETURNED) {
-            for (const item of order.items) {
-                await tx.gearItem.update({
-                    where: { id: item.gearItemId },
-                    data: {
-                        stock: {
-                            increment: item.quantity
-                        }
+
+            await tx.gearItem.update({
+                where: {
+                    id: order.gearItemId
+                },
+                data: {
+                    stock: {
+                        increment: order.quantity
                     }
-                })
-            }
+                }
+            })
         }
 
         return tx.rentalOrder.update({
-            where: { id: orderId },
-            data: { status: payload.status },
+            where: {
+                id: orderId
+            },
+            data: {
+                status: payload.status
+            },
             include: {
-                items: { include: { gearItem: true } },
+                gearItem: true,
                 payment: true
             }
         })

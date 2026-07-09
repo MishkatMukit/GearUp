@@ -8,7 +8,8 @@ export interface IRentalItemInput {
 export interface ICreateRental {
     startDate: string;
     endDate: string;
-    items: IRentalItemInput[];
+    gearItemId: string;
+    quantity : number;
 }
 
 export interface IUpdateRentalStatus {
