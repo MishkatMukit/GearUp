@@ -2,7 +2,7 @@ import type Stripe from "stripe"
 import { PaymentStatus, RentalStatus } from "../../../generated/prisma/enums"
 import { prisma } from "../../lib/prisma"
 
-const markPaymentCompleted = async (transactionId: string, method?: string) => {
+const markPaymentCompleted = async (transactionId: string) => {
     const payment = await prisma.payment.findUnique({
         where: { transactionId }
     })
@@ -16,28 +16,33 @@ const markPaymentCompleted = async (transactionId: string, method?: string) => {
 
     await prisma.$transaction(async (tx) => {
         const rentalOrder = await tx.rentalOrder.findUniqueOrThrow({
-            where: { id: payment.rentalOrderId },
-            include: { items: true }
+            where: {
+                id: payment.rentalOrderId
+            },
+            include: {
+                gearItem: true
+            }
         })
 
-        for (const item of rentalOrder.items) {
-            const gearItem = await tx.gearItem.findUniqueOrThrow({
-                where: { id: item.gearItemId }
-            })
-
-            if (gearItem.stock < item.quantity) {
-                throw new Error(`Not enough stock for "${gearItem.name}" to fulfill this rental order`)
+        const gearItem = await tx.gearItem.findUniqueOrThrow({
+            where: {
+                id: rentalOrder.gearItemId
             }
+        })
 
-            await tx.gearItem.update({
-                where: { id: item.gearItemId },
-                data: {
-                    stock: {
-                        decrement: item.quantity
-                    }
-                }
-            })
+        if (gearItem.stock < rentalOrder.quantity) {
+            throw new Error(`Not enough stock for "${gearItem.name}" to fulfill this rental order`)
         }
+
+        await tx.gearItem.update({
+            where: { id: gearItem.id },
+            data: {
+                stock: {
+                    decrement: rentalOrder.quantity
+                }
+            }
+        })
+
 
         await tx.payment.update({
             where: { transactionId },
@@ -59,5 +64,5 @@ export const handleStripeCheckoutCompleted = async (session: Stripe.Checkout.Ses
         console.log("Stripe webhook: missing transactionId in metadata")
         return
     }
-    await markPaymentCompleted(transactionId, "card")
+    await markPaymentCompleted(transactionId)
 }

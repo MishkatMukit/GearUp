@@ -52,7 +52,7 @@ const insertRentalIntoDB = async (payload: ICreateRental, customerId: string) =>
             status: RentalStatus.PLACED
         },
         include: {
-            gearItem : true
+            gearItem: true
         }
     })
     return order
@@ -65,7 +65,7 @@ const getMyRentalsFromDB = async (customerId: string) => {
         where: { customerId },
         orderBy: { createdAt: "desc" },
         include: {
-            items: { include: { gearItem: true } },
+            gearItem: true,
             payment: true
         }
     })
@@ -75,9 +75,13 @@ const getRentalByIdFromDB = async (orderId: string, customerId: string) => {
     const order = await prisma.rentalOrder.findUniqueOrThrow({
         where: { id: orderId },
         include: {
-            items: { include: { gearItem: true } },
+            gearItem: true,
             payment: true,
-            customer: { omit: { password: true } }
+            customer: {
+                omit: {
+                    password: true
+                }
+            }
         }
     })
     if (order.customerId !== customerId) {

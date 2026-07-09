@@ -15,16 +15,21 @@ const createPayment = async (rentalOrderId: string, customerId: string) => {
     if (order.customerId !== customerId) {
         throw new Error("You are not the owner of this rental order")
     }
+    if (
+        order.payment?.status === PaymentStatus.COMPLETED ||
+        order.status === RentalStatus.PAID
+    ) {
+        throw new Error(
+            "You have already paid for this order"
+        )
+    }
     if (order.status === RentalStatus.CANCELLED) {
         throw new Error("Cannot pay for a cancelled order")
     }
+
     if (order.status !== RentalStatus.CONFIRMED) {
         throw new Error("Payment is only allowed after the provider confirms the order")
     }
-    if (order.payment && order.payment.status === PaymentStatus.COMPLETED) {
-        throw new Error("This order has already been paid")
-    }
-
     const transactionId = `GEARUP-${randomUUID()}`
 
 
@@ -95,7 +100,9 @@ const getMyPaymentsFromDB = async (customerId: string) => {
         orderBy: { createdAt: "desc" },
         include: {
             rentalOrder: {
-                include: { items: { include: { gearItem: true } } }
+                include: {
+                    gearItem: true
+                }
             }
         }
     })
@@ -106,7 +113,9 @@ const getPaymentByIdFromDB = async (paymentId: string, customerId: string, isAdm
         where: { id: paymentId },
         include: {
             rentalOrder: {
-                include: { items: { include: { gearItem: true } } }
+                include: {
+                    gearItem: true
+                }
             }
         }
     })
