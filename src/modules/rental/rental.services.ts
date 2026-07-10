@@ -5,10 +5,6 @@ import { diffInDays } from "./utils.rental"
 
 const insertRentalIntoDB = async (payload: ICreateRental, customerId: string) => {
     const { startDate, endDate, gearItemId, quantity } = payload
-
-    // if (!item || item.length === 0) {
-    //     throw new Error("At least one gear item is required to place a rental")
-    // }
     const start = new Date(startDate)
     const end = new Date(endDate)
     const today = new Date()

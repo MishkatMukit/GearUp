@@ -72,7 +72,7 @@ const getAllGearFromDB = async (query: IGearQuery) => {
                     password: true
                 }
             },
-            // _count: { select: { reviews: true } }
+            _count: { select: { reviews: true } }
         }
     })
 
