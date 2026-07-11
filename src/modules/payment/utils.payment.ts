@@ -66,3 +66,32 @@ export const handleStripeCheckoutCompleted = async (session: Stripe.Checkout.Ses
     }
     await markPaymentCompleted(transactionId)
 }
+
+const markPaymentFailed = async (transactionId: string) => {
+    const payment = await prisma.payment.findUnique({
+        where: { transactionId }
+    })
+    if (!payment) {
+        console.log("Payment webhook: no payment found for tran_id:", transactionId)
+        return
+    }
+    if (payment.status === PaymentStatus.COMPLETED || payment.status === PaymentStatus.FAILED) {
+        return
+    }
+
+    await prisma.payment.update({
+        where: { transactionId },
+        data: {
+            status: PaymentStatus.FAILED,
+        }
+    })
+}
+
+export const handleStripeCheckoutExpired = async (session: Stripe.Checkout.Session) => {
+    const transactionId = session.metadata?.transactionId
+    if (!transactionId) {
+        console.log("Stripe webhook: missing transactionId in metadata")
+        return
+    }
+    await markPaymentFailed(transactionId)
+}

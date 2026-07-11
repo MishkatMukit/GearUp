@@ -3,7 +3,7 @@ import config from "../../config"
 import { prisma } from "../../lib/prisma"
 import { stripe } from "../../lib/stripe"
 import { randomUUID } from "crypto"
-import { handleStripeCheckoutCompleted } from "./utils.payment"
+import { handleStripeCheckoutCompleted, handleStripeCheckoutExpired } from "./utils.payment"
 
 const createPayment = async (rentalOrderId: string, customerId: string) => {
 
@@ -88,6 +88,9 @@ const handleWebhook = async (payload: Buffer, signature: string) => {
     switch (event.type) {
         case "checkout.session.completed":
             await handleStripeCheckoutCompleted(event.data.object)
+            break
+        case "checkout.session.expired":
+            await handleStripeCheckoutExpired(event.data.object)
             break
         default:
             console.log(`Unhandled stripe event type ${event.type}`)
